@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="io.github.masonseaman.keepawake.MainActivity">
+    <item
+        android:id="@+id/delete_database"
+        android:orderInCategory="100"
+        android:title="Reset all caffeine"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/change_refresh_rate"
+        android:orderInCategory="100"
+        android:title="Change refresh rate"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_refresh"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_refresh_white_24dp"
+        android:title="Refresh"
+        />
+</menu>

@@ -1,0 +1,27 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="300dp"
+    android:layout_height="150dp"
+    android:layout_gravity="center"
+    >
+    <EditText
+        android:id="@+id/custom_mg"
+        android:inputType="number"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:hint="150"
+        android:textSize="20dp"/>
+
+
+
+    <TextView
+        android:text="Milligrams"
+        android:gravity="center"
+        android:textSize="20dp"
+        android:layout_height="wrap_content"
+        android:layout_width="150dp"
+        android:layout_alignBottom="@+id/custom_mg"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/textView2" />
+
+</RelativeLayout>
