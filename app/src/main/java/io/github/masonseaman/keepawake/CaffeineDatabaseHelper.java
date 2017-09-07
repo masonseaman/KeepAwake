@@ -4,10 +4,16 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import org.joda.time.DateTime;
+
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 
 /**
  * Created by mason on 6/10/17.
@@ -59,6 +65,32 @@ public class CaffeineDatabaseHelper extends SQLiteOpenHelper {
         res.close();
         db.close();
         return x;
+    }
+
+    public void deleteRow(DateTime time){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_NAME, "where 'startTime'=" + time.toString(), null);
+        db.close();
+    }
+
+    public HashMap<String,Float> getAndClearCaffeineAmounts(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor res = db.rawQuery("SELECT * FROM caffeine", null);
+        res.moveToFirst();
+        HashMap<String,Float> hm = new HashMap<String, Float>();
+        while(res!=null){
+            String s = res.getString(res.getColumnIndex(START_TIME));
+            float f = Float.parseFloat(res.getString(res.getColumnIndex(CAFFEINE_AMOUNT)));
+            hm.put(s,f);
+        }
+        db.close();
+        return hm;
+    }
+
+    public void deleteCaffeine(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_NAME,null,null);
+        db.close();
     }
 
     public void updateCaffeine(DateTime startTime, float caffeine) {

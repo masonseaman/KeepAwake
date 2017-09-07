@@ -78,24 +78,6 @@ public class MainActivity extends AppCompatActivity {
 
         mgRemaining = (TextView) findViewById(R.id.mg);
 
-
-        /*if (dbHelper.getTotal() > 0) {
-            float temp = dbHelper.getTotal();
-            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            String startTime = sp.getString("end_time", new DateTime().toString());
-            deleteDatabase(dbHelper.getDatabaseName());
-            dbHelper.close();
-            Intent serviceIntent = new Intent(getApplicationContext(), ThreadRunnerService.class);
-            serviceIntent.putExtra("caffeine", temp);
-            serviceIntent.putExtra("lock", mutex);
-            serviceIntent.putExtra("startTime", startTime.toString());
-            //serviceIntent.putExtra("messenger", messenger);
-            startService(serviceIntent);
-            Log.d("error", "fab pressed");
-
-            startService(serviceIntent);
-        }*/
-
         Thread t = new Thread(new Runnable() {
             public void run() {
                 while (true) {
@@ -231,9 +213,7 @@ public class MainActivity extends AppCompatActivity {
                     .onPositive(new MaterialDialog.SingleButtonCallback() {
                         @Override
                         public void onClick(@NonNull MaterialDialog materialDialog, @NonNull DialogAction dialogAction) {
-
-                            deleteDatabase(dbHelper.DATABASE_NAME);
-                            dbHelper.close();
+                            dbHelper.deleteCaffeine();
                         }
                     })
                     .onNegative(new MaterialDialog.SingleButtonCallback() {
@@ -295,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, ThreadRunnerService.class);
                 intent.putExtra("changed", true);
                 startService(intent);
+                Log.d("refresh rate", Integer.toString(dbHelper.getRefreshRate()));
             }
             Snackbar.make(this.findViewById(R.id.menu_refresh), "Refreshing...", Snackbar.LENGTH_SHORT).show();
         }

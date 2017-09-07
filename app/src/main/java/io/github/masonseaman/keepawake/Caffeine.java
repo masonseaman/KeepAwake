@@ -52,7 +52,7 @@ public class Caffeine implements Runnable {
         }
 
         try {
-            while (updatedValue >= 1) {
+            while (updatedValue >= 5) {
                 Log.d("error", "starting loop\n\n\n\n");
 
                 DateTime now = new DateTime();
@@ -68,6 +68,8 @@ public class Caffeine implements Runnable {
                 Log.d("refresh", Integer.toString(dbHelper.getRefreshRate()));
                 Thread.sleep(dbHelper.getRefreshRate());
             }
+            dbHelper.deleteRow(start);
+
         } catch (InterruptedException e) {
             run();
         }

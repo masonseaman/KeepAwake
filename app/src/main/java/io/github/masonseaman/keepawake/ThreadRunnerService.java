@@ -18,6 +18,9 @@ import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ThreadRunnerService extends Service {
@@ -59,17 +62,25 @@ public class ThreadRunnerService extends Service {
         Bundle b = intent.getExtras();
 
         if(b.containsKey("reboot")){
+            //TODO on reboot should take end time from preferences and update the start time on all entries in database
+
+            Log.d("reboot","rebooted");
+
             threadIds.clear();
-            float temp = dbHelper.getTotal();
-            String startTime = sp.getString("end_time", new DateTime().toString());
-            deleteDatabase(dbHelper.getDatabaseName());
-            dbHelper.close();
 
-            Thread newCaffeine = new Thread(new Caffeine(temp, DateTime.parse(startTime), getApplicationContext(), lock));
-            threadIds.add(newCaffeine);
-            newCaffeine.start();
+            HashMap hm = dbHelper.getAndClearCaffeineAmounts();
 
-            return START_NOT_STICKY;//maybe change to not sticky
+
+            Iterator<HashMap.Entry<String, Float>> iterator = hm.entrySet().iterator() ;
+            while(iterator.hasNext()){
+                HashMap.Entry<String, Float> hmEntries = iterator.next();
+                Thread newCaffeine = new Thread(new Caffeine(hmEntries.getValue(), DateTime.parse(hmEntries.getKey()), getApplicationContext(), lock));
+                dbHelper.deleteRow(DateTime.parse(hmEntries.getKey()));
+                threadIds.add(newCaffeine);
+                newCaffeine.start();
+            }
+
+            return START_NOT_STICKY;
         }
 
         else if(b.containsKey("changed")){
