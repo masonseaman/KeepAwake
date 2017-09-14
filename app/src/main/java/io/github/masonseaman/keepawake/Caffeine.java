@@ -38,9 +38,9 @@ public class Caffeine implements Runnable {
         this.lock = lock;
         this.context = context;
 
-        //create database entry
+//        //create database entry
         dbHelper = new CaffeineDatabaseHelper(context);
-        dbHelper.addCaffeine(start, mg);
+//        dbHelper.addCaffeine(start, mg);
     }
 
     @Override

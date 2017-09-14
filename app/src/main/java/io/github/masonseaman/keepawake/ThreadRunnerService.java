@@ -62,25 +62,7 @@ public class ThreadRunnerService extends Service {
         Bundle b = intent.getExtras();
 
         if(b.containsKey("reboot")){
-            //TODO on reboot should take end time from preferences and update the start time on all entries in database
-
-            Log.d("reboot","rebooted");
-
-            threadIds.clear();
-
-            HashMap hm = dbHelper.getAndClearCaffeineAmounts();
-
-
-            Iterator<HashMap.Entry<String, Float>> iterator = hm.entrySet().iterator() ;
-            while(iterator.hasNext()){
-                HashMap.Entry<String, Float> hmEntries = iterator.next();
-                Thread newCaffeine = new Thread(new Caffeine(hmEntries.getValue(), DateTime.parse(hmEntries.getKey()), getApplicationContext(), lock));
-                dbHelper.deleteRow(DateTime.parse(hmEntries.getKey()));
-                threadIds.add(newCaffeine);
-                newCaffeine.start();
-            }
-
-            return START_NOT_STICKY;
+            startThreadsFromDatabase();
         }
 
         else if(b.containsKey("changed")){
@@ -92,9 +74,15 @@ public class ThreadRunnerService extends Service {
             DateTime startTime = DateTime.parse(b.getString("startTime"));
             Log.d("error", caffeineAmount + "caffeine");
 
-            Thread newCaffeine = new Thread(new Caffeine(caffeineAmount, startTime, this, lock));
-            threadIds.add(newCaffeine);
-            newCaffeine.start();
+            //create database entry
+            if(dbHelper.addCaffeine(startTime, caffeineAmount)) {
+                //create thread and add id to threadid list
+                Thread newCaffeine = new Thread(new Caffeine(caffeineAmount, startTime, this, lock));
+                threadIds.add(newCaffeine);
+
+                //start thread
+                newCaffeine.start();
+            }
 
             return START_NOT_STICKY;
         }
@@ -105,6 +93,26 @@ public class ThreadRunnerService extends Service {
         for(Thread id:threadIds){
             id.interrupt();
         }
+    }
+
+    public int startThreadsFromDatabase(){
+        Log.d("reboot","rebooted");
+
+        CaffeineDatabaseHelper dbHelper = new CaffeineDatabaseHelper(this);
+
+        threadIds.clear();
+
+        HashMap<String, Float> hm = dbHelper.getAndClearCaffeineAmounts();
+
+        Log.d("reboot", hm.toString());
+
+        for(String key : hm.keySet()){
+            Thread newCaffeine = new Thread(new Caffeine(hm.get(key), DateTime.parse(key),getApplicationContext(),lock));
+            threadIds.add(newCaffeine);
+            newCaffeine.start();
+        }
+
+        return START_NOT_STICKY;
     }
 
 

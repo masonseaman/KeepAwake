@@ -42,6 +42,8 @@ import org.joda.time.DateTime;
 import java.text.DecimalFormat;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.lang.Thread.sleep;
+
 public class MainActivity extends AppCompatActivity {
 
     private static TextView mgRemaining;
@@ -90,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
                     try {
-                        Thread.sleep(1000);
+                        sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -98,6 +100,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         t.start();
+
+        if(dbHelper.getTotal()>0){
+            Intent newIntent = new Intent(this,ThreadRunnerService.class);
+            newIntent.putExtra("reboot", true);
+            this.startService(newIntent);
+            Log.d("restarted", "restarted");
+        }
 
         final FloatingActionsMenu fab = (FloatingActionsMenu) findViewById(R.id.menu);
 
@@ -109,7 +118,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //call startService with coffee defaults
-                startService(v, 150);
+                try {
+                    startService(v, 150);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                DecimalFormat df = new DecimalFormat();
+                df.setMaximumFractionDigits(2);
+                mgRemaining.setText(df.format(dbHelper.getTotal()));
             }
         });
 
@@ -132,7 +153,11 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 else {
                                     float inputNum = Float.parseFloat(input.getText().toString());
-                                    startService(v, inputNum);
+                                    try {
+                                        startService(v, inputNum);
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                                 dialog.isCancelled();
                             }
@@ -146,6 +171,14 @@ public class MainActivity extends AppCompatActivity {
                         })
                         .negativeText("Cancel")
                         .show();
+                try {
+                    sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                DecimalFormat df = new DecimalFormat();
+                df.setMaximumFractionDigits(2);
+                mgRemaining.setText(df.format(dbHelper.getTotal()));
             }
         });
 
@@ -159,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void startService(View view, float caffeine) {
+    public void startService(View view, float caffeine) throws InterruptedException {
         Intent serviceIntent = new Intent(getApplicationContext(), ThreadRunnerService.class);
         serviceIntent.putExtra("caffeine", caffeine);
         serviceIntent.putExtra("startTime", new DateTime().toString());
@@ -214,6 +247,9 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onClick(@NonNull MaterialDialog materialDialog, @NonNull DialogAction dialogAction) {
                             dbHelper.deleteCaffeine();
+                            DecimalFormat df = new DecimalFormat();
+                            df.setMaximumFractionDigits(2);
+                            mgRemaining.setText(df.format(dbHelper.getTotal()));
                         }
                     })
                     .onNegative(new MaterialDialog.SingleButtonCallback() {
@@ -278,6 +314,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("refresh rate", Integer.toString(dbHelper.getRefreshRate()));
             }
             Snackbar.make(this.findViewById(R.id.menu_refresh), "Refreshing...", Snackbar.LENGTH_SHORT).show();
+            DecimalFormat df = new DecimalFormat();
+            df.setMaximumFractionDigits(2);
+            mgRemaining.setText(df.format(dbHelper.getTotal()));
         }
         return super.onOptionsItemSelected(item);
     }

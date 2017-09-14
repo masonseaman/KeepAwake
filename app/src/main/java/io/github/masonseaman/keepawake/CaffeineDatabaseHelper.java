@@ -78,10 +78,12 @@ public class CaffeineDatabaseHelper extends SQLiteOpenHelper {
         Cursor res = db.rawQuery("SELECT * FROM caffeine", null);
         res.moveToFirst();
         HashMap<String,Float> hm = new HashMap<String, Float>();
-        while(res!=null){
+        while(!res.isAfterLast()){
             String s = res.getString(res.getColumnIndex(START_TIME));
             float f = Float.parseFloat(res.getString(res.getColumnIndex(CAFFEINE_AMOUNT)));
             hm.put(s,f);
+            Log.d("reboot", hm.toString());
+            res.moveToNext();
         }
         db.close();
         return hm;
