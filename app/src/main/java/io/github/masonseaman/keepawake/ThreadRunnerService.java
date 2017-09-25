@@ -18,6 +18,9 @@ import org.joda.time.DateTime;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class ThreadRunnerService extends Service {
@@ -59,17 +62,16 @@ public class ThreadRunnerService extends Service {
         Bundle b = intent.getExtras();
 
         if(b.containsKey("reboot")){
-            threadIds.clear();
-            float temp = dbHelper.getTotal();
-            String startTime = sp.getString("end_time", new DateTime().toString());
-            deleteDatabase(dbHelper.getDatabaseName());
-            dbHelper.close();
+            //only start the threads from the database if they are not alive
+            if(threadIds.size()==0 || !threadIds.get(0).isAlive()) {
+                Log.d("restarted", "not alive!");
+                startThreadsFromDatabase();
+            }
+            else {
+                Log.d("restarted", "already alive!");
+                makeThreadsLoop();
+            }
 
-            Thread newCaffeine = new Thread(new Caffeine(temp, DateTime.parse(startTime), getApplicationContext(), lock));
-            threadIds.add(newCaffeine);
-            newCaffeine.start();
-
-            return START_NOT_STICKY;//maybe change to not sticky
         }
 
         else if(b.containsKey("changed")){
@@ -81,9 +83,15 @@ public class ThreadRunnerService extends Service {
             DateTime startTime = DateTime.parse(b.getString("startTime"));
             Log.d("error", caffeineAmount + "caffeine");
 
-            Thread newCaffeine = new Thread(new Caffeine(caffeineAmount, startTime, this, lock));
-            threadIds.add(newCaffeine);
-            newCaffeine.start();
+            //create database entry
+            if(dbHelper.addCaffeine(startTime, caffeineAmount)) {
+                //create thread and add id to threadid list
+                Thread newCaffeine = new Thread(new Caffeine(caffeineAmount, startTime, this, lock));
+                threadIds.add(newCaffeine);
+
+                //start thread
+                newCaffeine.start();
+            }
 
             return START_NOT_STICKY;
         }
@@ -94,6 +102,28 @@ public class ThreadRunnerService extends Service {
         for(Thread id:threadIds){
             id.interrupt();
         }
+    }
+
+    public int startThreadsFromDatabase(){
+        Log.d("reboot","rebooted");
+
+        CaffeineDatabaseHelper dbHelper = new CaffeineDatabaseHelper(this);
+
+        threadIds.clear();
+
+        HashMap<String, Float> hm = dbHelper.getAndClearCaffeineAmounts();
+
+        Log.d("reboot", hm.toString());
+
+        for(String key : hm.keySet()){
+            Log.d("restarted", "caffeine val " + hm.get(key).toString());
+            Log.d("restarted", "date " + DateTime.parse(key));
+            Thread newCaffeine = new Thread(new Caffeine(hm.get(key), DateTime.parse(key),getApplicationContext(),lock));
+            threadIds.add(newCaffeine);
+            newCaffeine.start();
+        }
+
+        return START_NOT_STICKY;
     }
 
 

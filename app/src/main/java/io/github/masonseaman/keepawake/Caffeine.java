@@ -38,9 +38,17 @@ public class Caffeine implements Runnable {
         this.lock = lock;
         this.context = context;
 
-        //create database entry
+//        //create database entry
         dbHelper = new CaffeineDatabaseHelper(context);
-        dbHelper.addCaffeine(start, mg);
+//        dbHelper.addCaffeine(start, mg);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        String endTime = sharedPref.getString("end_time","");
+
+        if(!endTime.equals("")){
+            calculatedStart = DateTime.parse(endTime);
+            sharedPref.edit().remove("end_time").commit();
+        }
+
     }
 
     @Override
@@ -52,11 +60,13 @@ public class Caffeine implements Runnable {
         }
 
         try {
-            while (updatedValue >= 1) {
-                Log.d("error", "starting loop\n\n\n\n");
+            while (updatedValue >= 5) {
+                //Log.d("error", "starting loop\n\n\n\n");
 
                 DateTime now = new DateTime();
                 Long timeDiff = new Interval(calculatedStart, now).toDurationMillis();
+
+                Log.d("caffeine",timeDiff.toString());
 
                 updatedValue = (float) (updatedValue * Math.pow((.5), (timeDiff / 18000000.0)));
 
@@ -68,6 +78,8 @@ public class Caffeine implements Runnable {
                 Log.d("refresh", Integer.toString(dbHelper.getRefreshRate()));
                 Thread.sleep(dbHelper.getRefreshRate());
             }
+            dbHelper.deleteRow(start);
+
         } catch (InterruptedException e) {
             run();
         }
