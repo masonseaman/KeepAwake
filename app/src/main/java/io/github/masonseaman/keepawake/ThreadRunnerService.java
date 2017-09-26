@@ -62,7 +62,16 @@ public class ThreadRunnerService extends Service {
         Bundle b = intent.getExtras();
 
         if(b.containsKey("reboot")){
-            startThreadsFromDatabase();
+            //only start the threads from the database if they are not alive
+            if(threadIds.size()==0 || !threadIds.get(0).isAlive()) {
+                Log.d("restarted", "not alive!");
+                startThreadsFromDatabase();
+            }
+            else {
+                Log.d("restarted", "already alive!");
+                makeThreadsLoop();
+            }
+
         }
 
         else if(b.containsKey("changed")){
@@ -107,6 +116,8 @@ public class ThreadRunnerService extends Service {
         Log.d("reboot", hm.toString());
 
         for(String key : hm.keySet()){
+            Log.d("restarted", "caffeine val " + hm.get(key).toString());
+            Log.d("restarted", "date " + DateTime.parse(key));
             Thread newCaffeine = new Thread(new Caffeine(hm.get(key), DateTime.parse(key),getApplicationContext(),lock));
             threadIds.add(newCaffeine);
             newCaffeine.start();

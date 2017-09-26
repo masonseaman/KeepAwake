@@ -70,6 +70,7 @@ public class CaffeineDatabaseHelper extends SQLiteOpenHelper {
     public void deleteRow(DateTime time){
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_NAME, "where 'startTime'=" + time.toString(), null);
+        Log.d("database","deleted entry where starttime = " + time.toString());
         db.close();
     }
 
